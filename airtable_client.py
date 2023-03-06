@@ -16,30 +16,33 @@ AIRTABLE_CONFIG = {
 
 class AirtableClient:
     def __init__(self, base_name) -> None:
-        self.apiKey = os.environ['AIRTABLE_API_KEY']
+        self.api_key = os.environ['AIRTABLE_API_KEY']
+        self.row_key = AIRTABLE_CONFIG[base_name]['row_key']
+        self.env_key = AIRTABLE_CONFIG[base_name]['env_key']
+
         self.table = self.get_table(base_name)
         self.base_name = base_name
+        
         self.rows = None
+        self.rows_dict = None
 
     def get_table(self, base_name):
-        return Table(
-            self.apiKey, 
-            os.environ[AIRTABLE_CONFIG[base_name]['env_key']], 
-            'Main'
-        )
+        return Table(self.api_key, os.environ[self.env_key], 'Main')
 
-    def get_rows(self, as_dict=False, force_get=False):
-        if force_get or not self.rows:
+    def get_rows(self, force_get=False):
+        if force_get or self.rows_dict == None:
             rows = self.table.all()
-            if as_dict:
-                output = {}
-                for row in rows:
-                    row_key = AIRTABLE_CONFIG[self.base_name]['row_key']
-                    output[row['fields'][row_key]] = self._transform_row(row)
-            else:
-                output = rows
+            output = {}
+            for row in rows:
+                output[row['fields'][self.row_key]] = self._transform_row(row)
+            self.rows_dict = output
+        return self.rows_dict
 
-            self.rows = output
+    def get_sorted_rows(self, force_get=False):
+        if force_get or self.rows == None:
+            rows = self.table.all()
+            rows = sorted(rows, key=lambda row: row['fields'][self.row_key])
+            self.rows = [self._transform_row(row) for row in rows]
         return self.rows
 
     def _transform_row(self, row):
@@ -57,7 +60,7 @@ class AirtableClient:
             row = row['fields']
 
         row_key = row[AIRTABLE_CONFIG[self.base_name]['row_key']]
-        if row_key not in self.get_rows(as_dict=True):
+        if row_key not in self.get_rows():
             self.table.create(row)
         else:
             self.table.update(row_id, row)
