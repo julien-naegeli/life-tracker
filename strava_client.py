@@ -1,9 +1,9 @@
 from airtable_client import AirtableClient
-from StravaPythonClient.swagger_client.rest import ApiException
+from third_party.StravaPythonClient.swagger_client.rest import ApiException
 
 import os
 import requests
-import StravaPythonClient.swagger_client as swagger_client
+import third_party.StravaPythonClient.swagger_client as swagger_client
 
 
 class StravaClient:
@@ -19,7 +19,7 @@ class StravaClient:
     
     def authenticate(self) -> str:
         airtable_client = AirtableClient('config')
-        config = airtable_client.get_rows(as_dict=True)
+        config = airtable_client.get_rows()
 
         refresh_token_row = config['STRAVA_REFRESH_TOKEN']
         access_token_row = config['STRAVA_ACCESS_TOKEN']
