@@ -49,7 +49,3 @@ def pull_life_tracker_data():
 
     return Response(
         f'Updated life tracker from {start_date.date()} to today', status=200)
-
-
-if __name__ == "__main__":
-  app.run()
