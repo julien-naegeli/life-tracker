@@ -1,12 +1,16 @@
 from airtable_client import AirtableClient
 from datetime import date, datetime
+from flask import Flask
 from life_tracker_row import LifeTrackerRow
 from pandas import date_range
 from strava_client import StravaClient
 
 import os
 
-def main():
+app = Flask(__name__)
+
+@app.route("/pull/life-tracker-data", methods=["POST"])
+def pull_life_tracker_data():
     # init clients
     airtable_client = AirtableClient('life_tracker')
     strava_client   = StravaClient()
@@ -34,8 +38,7 @@ def main():
 
         # Save row
         airtable_client.upsert_row(row)
-    
 
-if __name__ == '__main__':
-    main()
-    # 1672549200
+
+if __name__ == "__main__":
+  app.run()
