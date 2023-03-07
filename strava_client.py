@@ -1,9 +1,9 @@
 from airtable_client import AirtableClient
-from third_party.StravaPythonClient.swagger_client.rest import ApiException
+from external.StravaPythonClient.swagger_client.rest import ApiException
 
 import os
 import requests
-import third_party.StravaPythonClient.swagger_client as swagger_client
+import external.StravaPythonClient.swagger_client as swagger_client
 
 
 class StravaClient:

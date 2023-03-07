@@ -22,11 +22,11 @@ def pull_life_tracker_data():
         sorted_rows = airtable_client.get_sorted_rows()
         start_date = datetime.strptime(sorted_rows[-1].date, '%Y-%m-%d')
 
-    activities = strava_client.get_activities(after=start_date.strftime('%s'))
-    
     if start_date.date() == date.today():
         return Response(
             'No updates. Did you forget to pass in full_backfill?', status=200)
+
+    activities = strava_client.get_activities(after=start_date.strftime('%s'))
 
     for date_to_process in date_range(start_date.date(), date.today()):
         
