@@ -35,7 +35,7 @@ class StravaClient:
 
         return response['access_token']
 
-    def get_activities(self, after: int):
+    def get_activities(self, after: int) -> dict:
         activities = []
         
         try:
@@ -46,7 +46,7 @@ class StravaClient:
     
         return to_start_date_dict(activities)
 
-def to_start_date_dict(activities):
+def to_start_date_dict(activities) -> dict:
     
     start_date_dict = {}
     

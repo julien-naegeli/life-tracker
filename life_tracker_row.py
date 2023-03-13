@@ -13,6 +13,11 @@ class LifeTrackerRow:
             else:
                 self.exercise = ''
 
+            if 'Sleep' in raw_row['fields']:
+                self.sleep = raw_row['fields']['Sleep']
+            else:
+                self.sleep = ''                
+
             if 'Strava Link' in raw_row['fields']:
                 self.strava_link = raw_row['fields']['Strava Link']
             else:
@@ -20,9 +25,10 @@ class LifeTrackerRow:
 
         elif date:
             self.id = None
-            self.strava_link = None
             self.exercise = ''
-            self.date = str(date)
+            self.sleep = None
+            self.strava_link = None
+            self.date = date.strftime('%Y-%m-%d')
 
     def __str__(self):
         return str(self.raw_row)
@@ -40,13 +46,54 @@ class LifeTrackerRow:
             self.strava_link = get_strava_activity_url(activity)
             
             if activity.sport_type == 'Run' and '👟' not in self.exercise:
-                self.exercise += '👟'
+                self.exercise += '👟 '
             elif activity.sport_type == 'Hike' and '🥾' not in self.exercise:
-                self.exercise += '🥾'
+                self.exercise += '🥾 '
             elif activity.sport_type == 'TrailRun' and '⛰' not in self.exercise:
-                self.exercise += '⛰'
+                self.exercise += '⛰ '
             elif activity.sport_type == 'Ride' and '🚲' not in self.exercise:
-                self.exercise += '🚲'
+                self.exercise += '🚲 '
+            else:
+                continue
+
+    def add_whoop_sleep(self, sleep_dict):
+        
+        if self.date not in sleep_dict:
+            return
+
+        sleep_summary = sleep_dict[self.date]['score']['stage_summary']
+
+        time_in_bed = sleep_summary['total_in_bed_time_milli']
+        time_awake = sleep_summary['total_awake_time_milli']
+
+        time_asleep = time_in_bed - time_awake
+
+        self.sleep = time_asleep / 1000
+
+
+    def add_whoop_workouts(self, workout_dict):
+        
+        if self.date not in workout_dict:
+            return
+
+        for workout in workout_dict[self.date]:
+            
+            if workout['sport_id'] == 45 and '💪' not in self.exercise:
+                self.exercise = '💪 ' + self.exercise
+            elif workout['sport_id'] == 0 and '👟' not in self.exercise:
+                self.exercise += '👟 '
+            elif workout['sport_id'] == 52 and '🥾' not in self.exercise:
+                self.exercise += '🥾 '
+            elif workout['sport_id'] == 1 and '🚲' not in self.exercise:
+                self.exercise += '🚲 '
+            elif workout['sport_id'] == 34 and '🎾' not in self.exercise:
+                self.exercise += '🎾 '
+            elif workout['sport_id'] == 30 and '⚽️' not in self.exercise:
+                self.exercise += '⚽️ '
+            elif workout['sport_id'] == 44 and '🧘‍♂️' not in self.exercise:
+                self.exercise += '🧘‍♂️ '
+            elif workout['sport_id'] == 101 and '🥒' not in self.exercise:
+                self.exercise += '🥒 '
             else:
                 continue
 
@@ -58,7 +105,10 @@ class LifeTrackerRow:
             output['Strava Link'] = self.strava_link
 
         if self.exercise:
-            output['Exercise'] = self.exercise                        
+            output['Exercise'] = self.exercise.strip()
+
+        if self.sleep:
+            output['Sleep'] = self.sleep
 
         return output
 
