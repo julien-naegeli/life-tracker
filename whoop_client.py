@@ -1,5 +1,6 @@
 from airtable_client import AirtableClient
 from datetime import datetime
+from dateutil import tz
 
 import os
 import requests
@@ -69,11 +70,15 @@ def to_workout_dict(workouts) -> dict:
     date_dict = {}
     
     for workout in workouts:
-        start = datetime.strptime(workout['start'].split('T')[0], '%Y-%m-%d')
-        start_date = str(start.date())
+
+        raw_start = datetime.strptime(workout['start'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        start_utc = raw_start.replace(tzinfo=tz.tzutc())
+        start_pt = start_utc.astimezone(tz.gettz('America/Los_Angeles'))
+
+        start_date = datetime.strftime(start_pt, '%Y-%m-%d')
         if start_date in date_dict:
             date_dict[start_date] += [workout]
         else:
             date_dict[start_date] = [workout]
-    
+
     return date_dict
