@@ -1,5 +1,6 @@
 from airtable_client import AirtableClient
 from datetime import date, datetime
+from dateutil import tz
 from flask import Flask, Response, request
 from life_tracker_row import LifeTrackerRow
 from pandas import date_range
@@ -24,15 +25,13 @@ def pull_life_tracker_data():
         sorted_rows = airtable_client.get_sorted_rows()
         start_date = datetime.strptime(sorted_rows[-1].date, '%Y-%m-%d')
 
-    if start_date.date() == date.today():
-        return Response(
-            'No updates. Did you forget to pass in full_backfill?', status=200)
+    today = datetime.now(tz.gettz('America/Los_Angeles'))
 
     activities = strava_client.get_activities(after=start_date.strftime('%s'))
     sleeps = whoop_client.get_recent_sleeps(start_date)
     workouts = whoop_client.get_recent_workouts(start_date)
 
-    for date_to_process in date_range(start_date.date(), date.today()):
+    for date_to_process in date_range(start_date.date(), today.date()):
         
         date_str = date_to_process.strftime('%Y-%m-%d')
 
