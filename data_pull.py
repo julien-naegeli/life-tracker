@@ -5,6 +5,7 @@ from flask import Flask, Response, request
 from life_tracker_row import LifeTrackerRow
 from pandas import date_range
 from strava_client import StravaClient
+from weight_gurus_client import WeightGurusClient
 from whoop_client import WhoopClient
 
 import os
@@ -17,6 +18,8 @@ def pull_life_tracker_data():
     airtable_client = AirtableClient('life_tracker')
     strava_client   = StravaClient()
     whoop_client    = WhoopClient()
+    weight_client   = WeightGurusClient()
+    
 
     existing_rows = airtable_client.get_rows()
 
@@ -30,6 +33,7 @@ def pull_life_tracker_data():
     activities = strava_client.get_activities(after=start_date.strftime('%s'))
     sleeps = whoop_client.get_recent_sleeps(start_date)
     workouts = whoop_client.get_recent_workouts(start_date)
+    weights = weight_client.get_weights(start_date)
 
     for date_to_process in date_range(start_date.date(), today.date()):
         
@@ -47,6 +51,9 @@ def pull_life_tracker_data():
         # Add whoop data
         row.add_whoop_sleep(sleeps)
         row.add_whoop_workouts(workouts)
+
+        # Add weight gurus data
+        row.add_weight(weights)
 
         # Save row
         airtable_client.upsert_row(row)

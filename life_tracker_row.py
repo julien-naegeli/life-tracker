@@ -16,7 +16,12 @@ class LifeTrackerRow:
             if 'Sleep' in raw_row['fields']:
                 self.sleep = raw_row['fields']['Sleep']
             else:
-                self.sleep = ''                
+                self.sleep = ''
+
+            if 'Weight' in raw_row['fields']:
+                self.weight = raw_row['fields']['Weight']
+            else:
+                self.weight = ''
 
             if 'Strava Link' in raw_row['fields']:
                 self.strava_link = raw_row['fields']['Strava Link']
@@ -26,7 +31,8 @@ class LifeTrackerRow:
         elif date:
             self.id = None
             self.exercise = ''
-            self.sleep = None
+            self.sleep = ''
+            self.weight = ''
             self.strava_link = None
             self.date = date.strftime('%Y-%m-%d')
 
@@ -97,6 +103,16 @@ class LifeTrackerRow:
             else:
                 continue
 
+    def add_weight(self, weight_dict):
+
+        if self.date not in weight_dict:
+            return
+
+        weight_str = str(weight_dict[self.date]['weight'])
+        
+        self.weight = f'{weight_str[:3]}.{weight_str[3:]}'
+
+
     def to_dict(self):
        
         output = {'Date': self.date}
@@ -109,6 +125,9 @@ class LifeTrackerRow:
 
         if self.sleep:
             output['Sleep'] = self.sleep
+
+        if self.weight:
+            output['Weight'] = self.weight
 
         return output
 
