@@ -1,4 +1,4 @@
-from airtable_client import AirtableClient
+from clients.airtable import AirtableClient
 from datetime import datetime
 from dateutil import tz
 

@@ -1,12 +1,14 @@
-from airtable_client import AirtableClient
+from clients.airtable import AirtableClient
+from clients.strava import StravaClient
+from clients.weight_gurus import WeightGurusClient
+from clients.whoop import WhoopClient
+
 from datetime import date, datetime
 from dateutil import tz
 from flask import Flask, Response, request
 from life_tracker_row import LifeTrackerRow
 from pandas import date_range
-from strava_client import StravaClient
-from weight_gurus_client import WeightGurusClient
-from whoop_client import WhoopClient
+
 
 import os
 
