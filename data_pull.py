@@ -1,4 +1,5 @@
 from clients.airtable import AirtableClient
+from clients.google import GoogleClient
 from clients.strava import StravaClient
 from clients.weight_gurus import WeightGurusClient
 from clients.whoop import WhoopClient
@@ -21,7 +22,7 @@ def pull_life_tracker_data():
     strava_client   = StravaClient()
     whoop_client    = WhoopClient()
     weight_client   = WeightGurusClient()
-    
+    google_client = GoogleClient()
 
     existing_rows = airtable_client.get_rows()
 
@@ -36,6 +37,7 @@ def pull_life_tracker_data():
     sleeps = whoop_client.get_recent_sleeps(start_date)
     workouts = whoop_client.get_recent_workouts(start_date)
     weights = weight_client.get_weights(start_date)
+    events = google_client.get_events()
 
     for date_to_process in date_range(start_date.date(), today.date()):
         
@@ -56,6 +58,9 @@ def pull_life_tracker_data():
 
         # Add weight gurus data
         row.add_weight(weights)
+
+        # Check if it's a travel day
+        row.add_travel_day(events)
 
         # Save row
         airtable_client.upsert_row(row)
