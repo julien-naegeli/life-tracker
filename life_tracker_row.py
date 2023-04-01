@@ -23,6 +23,16 @@ class LifeTrackerRow:
             else:
                 self.weight = ''
 
+            if 'Cals Burned' in raw_row['fields']:
+                self.kcals_burned = raw_row['fields']['Cals Burned']
+            else:
+                self.kcals_burned = None
+
+            if 'Strain' in raw_row['fields']:
+                self.strain = raw_row['fields']['Strain']
+            else:
+                self.strain = None
+
             if 'Travel Day' in raw_row['fields']:
                 self.travel_day = raw_row['fields']['Travel Day']
             else:
@@ -38,6 +48,8 @@ class LifeTrackerRow:
             self.exercise = ''
             self.sleep = ''
             self.weight = ''
+            self.kcals_burned = None
+            self.strain = None
             self.travel_day = False
             self.strava_link = None
             self.date = date.strftime('%Y-%m-%d')
@@ -109,6 +121,20 @@ class LifeTrackerRow:
             else:
                 continue
 
+    def add_whoop_cycles(self, cycle_dict):
+
+        if self.date not in cycle_dict:
+            return
+
+        score_summary = cycle_dict[self.date]['score']
+
+        average_heart_rate = score_summary['average_heart_rate']
+        max_heart_rate     = score_summary['max_heart_rate']
+
+        self.strain       = score_summary['strain']
+        self.kcals_burned = score_summary['kilojoule'] / 4.184
+
+
     def add_weight(self, weight_dict):
 
         if self.date not in weight_dict:
@@ -141,6 +167,15 @@ class LifeTrackerRow:
 
         if self.weight:
             output['Weight'] = self.weight
+
+        if self.kcals_burned:
+            output['Cals Burned'] = self.kcals_burned
+
+        if self.strain:
+            output['Strain'] = self.strain
+
+        if self.weight:
+            output['Strain'] = self.strain
 
         if self.travel_day:
             output['Travel Day'] = self.travel_day

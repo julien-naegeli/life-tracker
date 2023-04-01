@@ -56,6 +56,16 @@ class WhoopClient:
         
         return to_workout_dict(response.json()['records'])
 
+    def get_recent_cycles(self, from_date):
+        
+        url = 'https://api.prod.whoop.com/developer/v1/cycle'
+        headers = {'Authorization': 'Bearer ' + self.access_token}
+        params = {'start': from_date.strftime('%Y-%m-%dT%H:%M:%SZ')}
+
+        response = requests.get(url, params=params, headers=headers)
+        
+        return to_cycle_dict(response.json()['records'])
+
 
 def to_date_dict(sleeps) -> dict:
     date_dict = {}
@@ -80,5 +90,14 @@ def to_workout_dict(workouts) -> dict:
             date_dict[start_date] += [workout]
         else:
             date_dict[start_date] = [workout]
+
+    return date_dict
+
+def to_cycle_dict(cycles) -> dict:
+    date_dict = {}
+
+    for cycle in cycles:
+        cycle_dt = datetime.strptime(cycle['start'].split('T')[0], '%Y-%m-%d')
+        date_dict[str(cycle_dt.date())] = cycle
 
     return date_dict

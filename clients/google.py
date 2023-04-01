@@ -11,7 +11,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
 
@@ -40,26 +39,28 @@ class GoogleClient:
         self.access_token = response['access_token']
 
 
-    def get_events(self):
-
-        today_pt = datetime.now(tz.gettz('America/Los_Angeles'))
-        tomorrow_pt = today_pt + timedelta(days=1)
-        tonight_midnight = datetime.combine(tomorrow_pt, datetime.min.time())
-        midnight_in_utc = tonight_midnight.astimezone(tz.UTC)
-        midnight = midnight_in_utc.replace(tzinfo=None).isoformat() + 'Z'
-
-        now = datetime.utcnow().isoformat() + 'Z'  # 'Z' indicates UTC time
-        # tomorrow = (datetime.utcnow() + timedelta(days=1)).isoformat() + 'Z'
+    def get_events(self, date):
 
         url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
         headers = {'Authorization': 'Bearer ' + self.access_token}
         params = {
-            'timeMin': now, 
-            'timeMax': midnight, 
+            'timeMin': get_utc_datetime_for_date(date), 
+            'timeMax': get_midnight_of_date(date), 
             'orderBy': 'startTime', 
             'singleEvents': True
         }
         
-        response = requests.get(url, params=params, headers=headers).json()
+        response = requests.get(url, params=params, headers=headers)
 
-        return response['items']
+        return response.json()['items']
+
+def get_utc_datetime_for_date(date):
+    dt = datetime.combine(date, datetime.min.time())
+    return dt.astimezone(tz.UTC).replace(tzinfo=None).isoformat() + 'Z'
+
+def get_midnight_of_date(date):
+    tomorrow_pt = date + timedelta(days=1)
+    tonight_midnight = datetime.combine(tomorrow_pt, datetime.min.time())
+    midnight_in_utc = tonight_midnight.astimezone(tz.UTC)
+    return midnight_in_utc.replace(tzinfo=None).isoformat() + 'Z'
+

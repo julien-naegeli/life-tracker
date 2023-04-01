@@ -34,10 +34,10 @@ def pull_life_tracker_data():
     today = datetime.now(tz.gettz('America/Los_Angeles'))
 
     activities = strava_client.get_activities(after=start_date.strftime('%s'))
-    sleeps = whoop_client.get_recent_sleeps(start_date)
-    workouts = whoop_client.get_recent_workouts(start_date)
-    weights = weight_client.get_weights(start_date)
-    events = google_client.get_events()
+    sleeps     = whoop_client.get_recent_sleeps(start_date)
+    workouts   = whoop_client.get_recent_workouts(start_date)
+    cycles     = whoop_client.get_recent_cycles(start_date)
+    weights    = weight_client.get_weights(start_date)
 
     for date_to_process in date_range(start_date.date(), today.date()):
         
@@ -55,11 +55,13 @@ def pull_life_tracker_data():
         # Add whoop data
         row.add_whoop_sleep(sleeps)
         row.add_whoop_workouts(workouts)
+        row.add_whoop_cycles(cycles)
 
         # Add weight gurus data
         row.add_weight(weights)
 
         # Check if it's a travel day
+        events = google_client.get_events(date_to_process)
         row.add_travel_day(events)
 
         # Save row
