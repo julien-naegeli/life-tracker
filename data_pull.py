@@ -37,6 +37,7 @@ def pull_life_tracker_data():
     sleeps     = whoop_client.get_recent_sleeps(start_date)
     workouts   = whoop_client.get_recent_workouts(start_date)
     cycles     = whoop_client.get_recent_cycles(start_date)
+    recoveries = whoop_client.get_recent_recoveries(start_date)
     weights    = weight_client.get_weights(start_date)
 
     for date_to_process in date_range(start_date.date(), today.date()):
@@ -56,6 +57,7 @@ def pull_life_tracker_data():
         row.add_whoop_sleep(sleeps)
         row.add_whoop_workouts(workouts)
         row.add_whoop_cycles(cycles)
+        row.add_whoop_recoveries(recoveries)
 
         # Add weight gurus data
         row.add_weight(weights)

@@ -18,6 +18,16 @@ class LifeTrackerRow:
             else:
                 self.sleep = ''
 
+            if 'Sleep Score' in raw_row['fields']:
+                self.sleep_score = raw_row['fields']['Sleep Score']
+            else:
+                self.sleep_score = ''
+
+            if 'Respiratory Rate' in raw_row['fields']:
+                self.respiratory_rate = raw_row['fields']['Respiratory Rate']
+            else:
+                self.respiratory_rate = ''
+
             if 'Weight' in raw_row['fields']:
                 self.weight = raw_row['fields']['Weight']
             else:
@@ -33,6 +43,41 @@ class LifeTrackerRow:
             else:
                 self.strain = None
 
+            if 'AHR' in raw_row['fields']:
+                self.avg_heart_rate = raw_row['fields']['AHR']
+            else:
+                self.avg_heart_rate = None
+
+            if 'MHR' in raw_row['fields']:
+                self.max_heart_rate = raw_row['fields']['MHR']
+            else:
+                self.max_heart_rate = None
+
+            if 'Recovery' in raw_row['fields']:
+                self.recovery_score = raw_row['fields']['Recovery']
+            else:
+                self.recovery_score = None
+
+            if 'RHR' in raw_row['fields']:
+                self.rhr = raw_row['fields']['RHR']
+            else:
+                self.rhr = None
+
+            if 'HRV' in raw_row['fields']:
+                self.hrv = raw_row['fields']['HRV']
+            else:
+                self.hrv = None
+
+            if 'Blood Oxygen' in raw_row['fields']:
+                self.blood_oxygen = raw_row['fields']['Blood Oxygen']
+            else:
+                self.blood_oxygen = None
+
+            if 'Skin Temp' in raw_row['fields']:
+                self.skin_temp = raw_row['fields']['Skin Temp']
+            else:
+                self.skin_temp = None
+
             if 'Travel Day' in raw_row['fields']:
                 self.travel_day = raw_row['fields']['Travel Day']
             else:
@@ -47,9 +92,18 @@ class LifeTrackerRow:
             self.id = None
             self.exercise = ''
             self.sleep = ''
+            self.sleep_score = ''
+            self.respiratory_rate = ''
             self.weight = ''
             self.kcals_burned = None
             self.strain = None
+            self.avg_heart_rate = None
+            self.max_heart_rate = None
+            self.recovery_score = None
+            self.rhr = None
+            self.hrv = None
+            self.blood_oxygen = None
+            self.skin_temp = None
             self.travel_day = False
             self.strava_link = None
             self.date = date.strftime('%Y-%m-%d')
@@ -85,7 +139,8 @@ class LifeTrackerRow:
         if self.date not in sleep_dict:
             return
 
-        sleep_summary = sleep_dict[self.date]['score']['stage_summary']
+        score = sleep_dict[self.date]['score']
+        sleep_summary = score['stage_summary']
 
         time_in_bed = sleep_summary['total_in_bed_time_milli']
         time_awake = sleep_summary['total_awake_time_milli']
@@ -93,6 +148,8 @@ class LifeTrackerRow:
         time_asleep = time_in_bed - time_awake
 
         self.sleep = time_asleep / 1000
+        self.sleep_score = score['sleep_performance_percentage']
+        self.respiratory_rate = score['respiratory_rate']
 
 
     def add_whoop_workouts(self, workout_dict):
@@ -128,12 +185,23 @@ class LifeTrackerRow:
 
         score_summary = cycle_dict[self.date]['score']
 
-        average_heart_rate = score_summary['average_heart_rate']
-        max_heart_rate     = score_summary['max_heart_rate']
+        self.strain         = score_summary['strain']
+        self.kcals_burned   = score_summary['kilojoule'] / 4.184
+        self.avg_heart_rate = score_summary['average_heart_rate']
+        self.max_heart_rate = score_summary['max_heart_rate']
 
-        self.strain       = score_summary['strain']
-        self.kcals_burned = score_summary['kilojoule'] / 4.184
+    def add_whoop_recoveries(self, recovery_dict):
 
+        if self.date not in recovery_dict:
+            return
+
+        score_summary = recovery_dict[self.date]['score']
+
+        self.recovery_score = score_summary['recovery_score']
+        self.rhr            = score_summary['resting_heart_rate']
+        self.hrv            = score_summary['hrv_rmssd_milli']
+        self.blood_oxygen   = score_summary['spo2_percentage']
+        self.skin_temp      = score_summary['skin_temp_celsius'] * 1.8 + 32
 
     def add_weight(self, weight_dict):
 
@@ -165,6 +233,12 @@ class LifeTrackerRow:
         if self.sleep:
             output['Sleep'] = self.sleep
 
+        if self.sleep_score:
+            output['Sleep Score'] = self.sleep_score
+
+        if self.respiratory_rate:
+            output['Respiratory Rate'] = self.respiratory_rate
+
         if self.weight:
             output['Weight'] = self.weight
 
@@ -174,8 +248,26 @@ class LifeTrackerRow:
         if self.strain:
             output['Strain'] = self.strain
 
-        if self.weight:
-            output['Strain'] = self.strain
+        if self.avg_heart_rate:
+            output['AHR'] = self.avg_heart_rate
+
+        if self.max_heart_rate:
+            output['MHR'] = self.max_heart_rate
+
+        if self.recovery_score:
+            output['Recovery'] = self.recovery_score
+
+        if self.rhr:
+            output['RHR'] = self.rhr
+
+        if self.hrv:
+            output['HRV'] = self.hrv
+
+        if self.blood_oxygen:
+            output['Blood Oxygen'] = self.blood_oxygen
+
+        if self.skin_temp:
+            output['Skin Temp'] = self.skin_temp
 
         if self.travel_day:
             output['Travel Day'] = self.travel_day
