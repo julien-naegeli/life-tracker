@@ -26,8 +26,8 @@ class AirtableClient:
         self.rows = None
         self.rows_dict = None
 
-    def get_table(self, base_name):
-        return Table(self.api_key, os.environ[self.env_key], 'Main')
+    def get_table(self, base_name, table_name='Main'):
+        return Table(self.api_key, os.environ[self.env_key], table_name)
 
     def get_rows(self, force_get=False):
         if force_get or self.rows_dict == None:

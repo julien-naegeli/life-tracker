@@ -255,7 +255,7 @@ class LifeTrackerRow:
             output['MHR'] = self.max_heart_rate
 
         if self.recovery_score:
-            output['Recovery'] = self.recovery_score
+            output['Recovery'] = str(int(self.recovery_score))
 
         if self.rhr:
             output['RHR'] = self.rhr
