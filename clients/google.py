@@ -56,11 +56,10 @@ class GoogleClient:
 
 def get_utc_datetime_for_date(date):
     dt = datetime.combine(date, datetime.min.time())
-    return dt.astimezone(tz.UTC).replace(tzinfo=None).isoformat() + 'Z'
+    return dt.astimezone(tz.gettz('America/Los_Angeles')).isoformat()
 
 def get_midnight_of_date(date):
     tomorrow_pt = date + timedelta(days=1)
-    tonight_midnight = datetime.combine(tomorrow_pt, datetime.min.time())
-    midnight_in_utc = tonight_midnight.astimezone(tz.UTC)
-    return midnight_in_utc.replace(tzinfo=None).isoformat() + 'Z'
+    midnight = datetime.combine(tomorrow_pt, datetime.min.time())
+    return midnight.astimezone(tz.gettz('America/Los_Angeles')).isoformat()
 

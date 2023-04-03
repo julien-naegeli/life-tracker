@@ -64,6 +64,7 @@ def pull_life_tracker_data():
 
         # Check if it's a travel day
         events = google_client.get_events(date_to_process)
+        print('events', events)
         row.add_travel_day(events)
 
         # Save row
