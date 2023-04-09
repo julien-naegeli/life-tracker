@@ -35,6 +35,20 @@ class WhoopClient:
 
         return response['access_token']
 
+    def _get(self, url, params, headers):
+
+        response  = requests.get(url, params=params, headers=headers).json()
+        records   = response['records']
+        nextToken = response['next_token']
+
+        while nextToken:
+            params['nextToken'] = nextToken
+            response  = requests.get(url, params=params, headers=headers)
+            records   += response.json()['records']
+            nextToken = response.json()['next_token']
+
+        return records
+
 
     def get_recent_sleeps(self, from_date):
         
@@ -42,9 +56,9 @@ class WhoopClient:
         headers = {'Authorization': 'Bearer ' + self.access_token}
         params = {'start': from_date.strftime('%Y-%m-%dT%H:%M:%SZ')}
 
-        response = requests.get(url, params=params, headers=headers)
-        
-        return to_date_dict(response.json()['records'])
+        sleep_records  = self._get(url=url, params=params, headers=headers)
+
+        return to_date_dict(sleep_records)
 
     def get_recent_workouts(self, from_date):
         
@@ -52,9 +66,9 @@ class WhoopClient:
         headers = {'Authorization': 'Bearer ' + self.access_token}
         params = {'start': from_date.strftime('%Y-%m-%dT%H:%M:%SZ')}
 
-        response = requests.get(url, params=params, headers=headers)
+        workout_records = self._get(url=url, params=params, headers=headers)
         
-        return to_workout_dict(response.json()['records'])
+        return to_workout_dict(workout_records)
 
     def get_recent_cycles(self, from_date):
         
@@ -62,9 +76,9 @@ class WhoopClient:
         headers = {'Authorization': 'Bearer ' + self.access_token}
         params = {'start': from_date.strftime('%Y-%m-%dT%H:%M:%SZ')}
 
-        response = requests.get(url, params=params, headers=headers)
+        cycle_records = self._get(url=url, params=params, headers=headers)
         
-        return to_cycle_dict(response.json()['records'])
+        return to_cycle_dict(cycle_records)
 
     def get_recent_recoveries(self, from_date):
         
@@ -72,9 +86,9 @@ class WhoopClient:
         headers = {'Authorization': 'Bearer ' + self.access_token}
         params = {'start': from_date.strftime('%Y-%m-%dT%H:%M:%SZ')}
 
-        response = requests.get(url, params=params, headers=headers)
+        recovery_records = self._get(url=url, params=params, headers=headers)
 
-        return to_recovery_dict(response.json()['records'])
+        return to_recovery_dict(recovery_records)
 
 
 def to_date_dict(sleeps) -> dict:
