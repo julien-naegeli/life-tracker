@@ -106,19 +106,21 @@ class WeeklyTrackerRow:
         output = {
             
             'Week': self.week,
-            'Avg. Sleep': self.total_sleep_mins / self.whoop_days,
-            'Avg. Sleep Score': self.total_sleep_score / self.num_rows,
             'Active Days': self.active_days,
-            'Elevation Gain': self.elevation_gain,
-            'Avg. Strain': self.total_strain / self.whoop_days,
-            'Avg. Recovery': self.total_recovery / self.whoop_days,
-            'Avg. Cals Burned': self.total_cals / self.whoop_days,
-            'RHR': self.total_rhr / self.whoop_days,
-            'HRV': self.total_hrv / self.whoop_days,
-            'Blood Oxygen': self.total_blood_oxygen / self.whoop_days,
-            'Skin Temp.': self.total_skin_temp / self.whoop_days
 
         }
+
+        if self.whoop_days:
+            output['Avg. Sleep'] = self.total_sleep_mins / self.whoop_days
+            output['Avg. Sleep Score'] = self.total_sleep_score / self.num_rows
+            output['Avg. Strain'] = self.total_strain / self.whoop_days
+            output['Avg. Recovery'] = self.total_recovery / self.whoop_days
+            output['Avg. Cals Burned'] = self.total_cals / self.whoop_days
+            output['RHR'] = self.total_rhr / self.whoop_days
+            output['HRV'] = self.total_hrv / self.whoop_days
+            output['Blood Oxygen'] = self.total_blood_oxygen / self.whoop_days
+            output['Skin Temp.'] = self.total_skin_temp / self.whoop_days
+
 
         if self.road_miles and self.road_time:
             output['👟 Miles'] = self.road_miles
@@ -127,6 +129,9 @@ class WeeklyTrackerRow:
         if self.mountain_miles and self.mountain_time:
             output['⛰ Miles'] = self.mountain_miles
             output['⛰ Pace'] = get_pace(self.mountain_miles, self.mountain_time)
+
+        if self.elevation_gain:
+            output['Elevation Gain'] = self.elevation_gain
 
         if self.total_weight:
             output['Avg. Weight'] = "{:.1f}".format(self.total_weight / self.weight_days)
