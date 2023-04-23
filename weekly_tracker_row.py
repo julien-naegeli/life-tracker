@@ -27,6 +27,10 @@ class WeeklyTrackerRow:
         self.total_blood_oxygen = 0
         self.total_skin_temp = 0
         self.total_recovery_score = 0
+        self.crono_days = 0
+        self.cal_diff = 0
+        self.cals_consumed = 0
+        self.protein = 0
 
     def _reset_row(self):
         self.num_rows = 0
@@ -48,6 +52,10 @@ class WeeklyTrackerRow:
         self.total_blood_oxygen = 0
         self.total_skin_temp = 0
         self.total_sleep_score = 0
+        self.crono_days = 0
+        self.cal_diff = 0
+        self.cals_consumed = 0
+        self.protein = 0
 
     def summarize_day_rows(self):
         
@@ -96,6 +104,12 @@ class WeeklyTrackerRow:
                 self.total_weight += float(day_row.weight)
                 self.weight_days  += 1
 
+            if day_row.kcals_consumed:
+                self.crono_days += 1
+                self.cal_diff += day_row.kcals_consumed - day_row.kcals_burned
+                self.cals_consumed += day_row.kcals_consumed
+                self.protein += day_row.protein
+
         self.num_rows = len(self.day_rows)
 
         return self.to_dict()
@@ -121,7 +135,6 @@ class WeeklyTrackerRow:
             output['Blood Oxygen'] = self.total_blood_oxygen / self.whoop_days
             output['Skin Temp.'] = self.total_skin_temp / self.whoop_days
 
-
         if self.road_miles and self.road_time:
             output['👟 Miles'] = self.road_miles
             output['👟 Pace'] = get_pace(self.road_miles, self.road_time)
@@ -134,7 +147,12 @@ class WeeklyTrackerRow:
             output['Elevation Gain'] = self.elevation_gain
 
         if self.total_weight:
-            output['Avg. Weight'] = "{:.1f}".format(self.total_weight / self.weight_days)
+            output['Avg. Weight'] = f'{self.total_weight / self.weight_days:.1f}'
+
+        if self.cals_consumed:
+            output['Avg. Cals Consumed'] = self.cals_consumed / self.crono_days
+            output['Cal Diff.'] = get_cal_diff_str(self.cal_diff)
+            output['Avg. Protein'] = self.protein / self.crono_days
 
         return output
 
@@ -144,3 +162,10 @@ def get_week_name(date):
     start_str = start_day.strftime('%b %d')
     end_str   = end_day.strftime('%b %d')
     return f'Week {date.isocalendar()[1]}: {start_str} - {end_str}'
+
+def get_cal_diff_str(cal_diff):
+    if cal_diff > 0:
+        return f'+{int(cal_diff):,}'
+    elif cal_diff < 0:
+        return f'{int(cal_diff):,}'
+    return '0'
