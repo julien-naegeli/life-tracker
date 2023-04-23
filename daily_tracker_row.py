@@ -15,6 +15,8 @@ class DailyTrackerRow:
 
         self.day_of_week = self._get_with_default('Day')
         self.exercise = self._get_with_default('Exercise', '')
+
+        # whoop
         self.sleep = self._get_with_default('Sleep')
         self.sleep_score = self._get_with_default('Sleep Score')
         self.respiratory_rate = self._get_with_default('Respiratory Rate')
@@ -28,13 +30,47 @@ class DailyTrackerRow:
         self.hrv = self._get_with_default('HRV')
         self.blood_oxygen = self._get_with_default('Blood Oxygen')
         self.skin_temp = self._get_with_default('Skin Temp')
+        
+        # google
         self.travel_day = self._get_with_default('Travel Day', False)
+        
+        # strava
         self.road_miles = self._get_with_default('👟 Miles', 0)
         self.road_time = self._get_with_default('👟 Time', 0)
         self.mountain_miles = self._get_with_default('⛰ Miles', 0)
         self.mountain_time = self._get_with_default('⛰ Time', 0)
         self.elevation_gain = self._get_with_default('Elevation Gain', 0)
         self.strava_link = self._get_with_default('Strava Link')
+
+        # cronometer
+        self.kcals_consumed = self._get_with_default('Cals Consumed', 0)
+        self.protein = self._get_with_default('Protein (g)', 0)
+        self.fat = self._get_with_default('Fat (g)', 0)
+        self.carbs = self._get_with_default('Carbs (g)', 0)
+        self.vitamin_a = self._get_with_default('Vitamin A (μg)', 0)
+        self.vitamin_c = self._get_with_default('Vitamin C (mg)', 0)
+        self.vitamin_d = self._get_with_default('Vitamin D (IU)', 0)
+        self.vitamin_e = self._get_with_default('Vitamin E (mg)', 0)
+        self.vitamin_k = self._get_with_default('Vitamin K (μg)', 0)
+        self.calcium = self._get_with_default('Calcium (mg)', 0)
+        self.copper = self._get_with_default('Copper (mg)', 0)
+        self.iron = self._get_with_default('Iron (mg)', 0)
+        self.magnesium = self._get_with_default('Magnesium (mg)', 0)
+        self.potassium = self._get_with_default('Potassium (mg)', 0)
+        self.selenium = self._get_with_default('Selenium (µg)', 0)
+        self.sodium = self._get_with_default('Sodium (mg)', 0)
+        self.zinc = self._get_with_default('Zinc (mg)', 0)
+        self.fiber = self._get_with_default('Fiber (g)', 0)
+        self.starch = self._get_with_default('Starch (g)', 0)
+        self.sugars = self._get_with_default('Sugars (g)', 0)
+        self.net_carbs = self._get_with_default('Net Carbs (g)', 0)
+        self.cholesterol = self._get_with_default('Cholesterol (mg)', 0)
+        self.monounsaturated = self._get_with_default('Monounsaturated (g)', 0)
+        self.polyunsaturated = self._get_with_default('Polyunsaturated (g)', 0)
+        self.saturated_fats = self._get_with_default('Saturated (g)', 0)
+        self.trans_fats = self._get_with_default('Trans-Fats (g)', 0)
+        self.omega_3 = self._get_with_default('Omega-3 (g)', 0)
+        self.omega_6 = self._get_with_default('Omega-6 (g)', 0)
 
     def __str__(self):
         return str(self.raw_row)
@@ -128,7 +164,7 @@ class DailyTrackerRow:
             elif workout['sport_id'] == 0 and '👟' not in self.exercise and \
                 '⛰' not in self.exercise:
                 self.exercise += '👟 '
-            elif workout['sport_id'] == 52 and '🥾' not in self.exercise:
+            elif workout['sport_id'] == 52 and '🥾' and '⛰' not in self.exercise:
                 self.exercise += '🥾 '
             elif workout['sport_id'] == 1 and '🚲' not in self.exercise:
                 self.exercise += '🚲 '
@@ -179,11 +215,47 @@ class DailyTrackerRow:
 
 
     def add_travel_day(self, events):
+        
         for event in events:
             if '✈️' in event['summary']:
                 self.travel_day = True
                 return
 
+    def add_nutrition_summary(self, nutrition_summary_dict):
+        
+        if self.date not in nutrition_summary_dict:
+            return
+
+        nutrition_summary = nutrition_summary_dict[self.date]
+
+        self.kcals_consumed = to_float(nutrition_summary['Energy (kcal)'])
+        self.protein = to_float(nutrition_summary['Protein (g)'])
+        self.fat = to_float(nutrition_summary['Fat (g)'])
+        self.carbs = to_float(nutrition_summary['Carbs (g)'])
+        self.vitamin_a = to_float(nutrition_summary['Vitamin A (Âµg)'])
+        self.vitamin_c = to_float(nutrition_summary['Vitamin C (mg)'])
+        self.vitamin_d = to_float(nutrition_summary['Vitamin D (IU)'])
+        self.vitamin_e = to_float(nutrition_summary['Vitamin E (mg)'])
+        self.vitamin_k = to_float(nutrition_summary['Vitamin K (Âµg)'])
+        self.calcium = to_float(nutrition_summary['Calcium (mg)'])
+        self.copper = to_float(nutrition_summary['Copper (mg)'])
+        self.iron = to_float(nutrition_summary['Iron (mg)'])
+        self.magnesium = to_float(nutrition_summary['Magnesium (mg)'])
+        self.potassium = to_float(nutrition_summary['Potassium (mg)'])
+        self.selenium = to_float(nutrition_summary['Selenium (Âµg)'])
+        self.sodium = to_float(nutrition_summary['Sodium (mg)'])
+        self.zinc = to_float(nutrition_summary['Zinc (mg)'])
+        self.fiber = to_float(nutrition_summary['Fiber (g)'])
+        self.starch = to_float(nutrition_summary['Starch (g)'])
+        self.sugars = to_float(nutrition_summary['Sugars (g)'])
+        self.net_carbs = to_float(nutrition_summary['Net Carbs (g)'])
+        self.cholesterol = to_float(nutrition_summary['Cholesterol (mg)'])
+        self.monounsaturated = to_float(nutrition_summary['Monounsaturated (g)'])
+        self.polyunsaturated = to_float(nutrition_summary['Polyunsaturated (g)'])
+        self.saturated_fats = to_float(nutrition_summary['Saturated (g)'])
+        self.trans_fats = to_float(nutrition_summary['Trans-Fats (g)'])
+        self.omega_3 = to_float(nutrition_summary['Omega-3 (g)'])
+        self.omega_6 = to_float(nutrition_summary['Omega-6 (g)'])
 
     def to_dict(self):
        
@@ -258,6 +330,36 @@ class DailyTrackerRow:
         if self.elevation_gain:
             output['Elevation Gain'] = self.elevation_gain
 
+        if self.kcals_consumed:
+            output['Cals Consumed'] = self.kcals_consumed
+            output['Protein (g)'] = self.protein
+            output['Fat (g)'] = self.fat
+            output['Carbs (g)'] = self.carbs
+            output['Vitamin A (μg)'] = self.vitamin_a
+            output['Vitamin C (mg)'] = self.vitamin_c
+            output['Vitamin D (IU)'] = self.vitamin_d
+            output['Vitamin E (mg)'] = self.vitamin_e
+            output['Vitamin K (μg)'] = self.vitamin_k
+            output['Calcium (mg)'] = self.calcium
+            output['Copper (mg)'] = self.copper
+            output['Iron (mg)'] = self.iron
+            output['Magnesium (mg)'] = self.magnesium
+            output['Potassium (mg)'] = self.potassium
+            output['Selenium (µg)'] = self.selenium
+            output['Sodium (mg)'] = self.sodium
+            output['Zinc (mg)'] = self.zinc
+            output['Fiber (g)'] = self.fiber
+            output['Starch (g)'] = self.starch
+            output['Sugars (g)'] = self.sugars
+            output['Net Carbs (g)'] = self.net_carbs
+            output['Cholesterol (mg)'] = self.cholesterol
+            output['Monounsaturated (g)'] = self.monounsaturated
+            output['Polyunsaturated (g)'] = self.polyunsaturated
+            output['Saturated (g)'] = self.saturated_fats
+            output['Trans-Fats (g)'] = self.trans_fats
+            output['Omega-3 (g)'] = self.omega_3
+            output['Omega-6 (g)'] = self.omega_6
+
         return output
 
 def get_strava_activity_url(activity):
@@ -271,3 +373,9 @@ def format_time(time):
     sec_ratio, mins = math.modf(pace)
     return f'{int(mins)}:{int(sec_ratio*60)}'
 
+def to_float(s):
+    try:
+        f = float(s)
+    except ValueError:
+        f = 0.0
+    return f
