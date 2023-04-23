@@ -90,7 +90,6 @@ class WhoopClient:
 
         return to_recovery_dict(recovery_records)
 
-
 def to_date_dict(sleeps) -> dict:
     date_dict = {}
 
