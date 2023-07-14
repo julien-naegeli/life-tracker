@@ -202,7 +202,8 @@ class DailyTrackerRow:
         self.rhr            = score_summary['resting_heart_rate']
         self.hrv            = score_summary['hrv_rmssd_milli']
         self.blood_oxygen   = score_summary['spo2_percentage']
-        self.skin_temp      = score_summary['skin_temp_celsius'] * 1.8 + 32
+        if score_summary['skin_temp_celsius']:
+            self.skin_temp      = score_summary['skin_temp_celsius'] * 1.8 + 32
 
     def add_weight(self, weight_dict):
 

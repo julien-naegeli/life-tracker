@@ -95,7 +95,7 @@ class CronometerClient:
         return re.search('\"(?P<token>.*)\"', response.text)[1]
 
     def get_nutrition_summaries(self, start_date, end_date):
-        
+
         url = 'https://cronometer.com/export'
         params = {
             'generate': 'dailySummary',
