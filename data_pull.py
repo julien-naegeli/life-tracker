@@ -123,3 +123,7 @@ def map_weeks_to_days(week_names, day_rows):
                 weeks_to_days[week_name] = [day_row]
 
     return weeks_to_days
+
+@app.route("/ping", methods=["GET"])
+def ping():
+    return Response('Successful ping. Let\'s track that life.', status=200)
