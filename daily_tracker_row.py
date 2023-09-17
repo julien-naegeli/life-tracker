@@ -140,6 +140,9 @@ class DailyTrackerRow:
             return
 
         score = sleep_dict[self.date]['score']
+        if score == None or 'stage_summary' not in score:
+            return
+        
         sleep_summary = score['stage_summary']
 
         time_in_bed = sleep_summary['total_in_bed_time_milli']
