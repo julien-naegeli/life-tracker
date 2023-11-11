@@ -8,19 +8,29 @@ AIRTABLE_CONFIG = {
         'env_key': 'LIFE_TRACKER_BASE_ID',
         'row_key': 'Date',
         'table_name': 'Main',
-        'has_row_object': True
+        'has_row_object': True,
+        'multiple_per_key': False
     },
     'weekly_tracker': {
         'env_key': 'LIFE_TRACKER_BASE_ID',
         'row_key': 'Week',
         'table_name': 'Weekly',
-        'has_row_object': False
+        'has_row_object': False,
+        'multiple_per_key': False
+    },
+    'lifting_tracker': {
+        'env_key': 'LIFE_TRACKER_BASE_ID',
+        'row_key': 'Date',
+        'table_name': 'Lifting',
+        'has_row_object': False,
+        'multiple_per_key': True
     },
     'config': {
         'env_key': 'CONFIG_BASE_ID',
         'row_key': 'Key',
         'table_name': 'Main',
-        'has_row_object': False
+        'has_row_object': False,
+        'multiple_per_key': False
     }
 }
 
@@ -45,7 +55,14 @@ class AirtableClient:
             rows = self.table.all()
             output = {}
             for row in rows:
-                output[row['fields'][self.row_key]] = self._transform_row(row)
+                transformed_row = self._transform_row(row)
+                if AIRTABLE_CONFIG[self.base_name]['multiple_per_key']:
+                    if row['fields'][self.row_key] in output:
+                        output[row['fields'][self.row_key]] += [transformed_row]
+                    else:
+                        output[row['fields'][self.row_key]] = [transformed_row]
+                else:
+                    output[row['fields'][self.row_key]] = transformed_row
             self.rows_dict = output
         return self.rows_dict
 
@@ -70,7 +87,7 @@ class AirtableClient:
             return self.get_rows()[row_key]['id']
 
     def upsert_row(self, row):
-        if self.base_name == 'daily_tracker':
+        if self.base_name in ['daily_tracker', 'lifting_tracker']:
             row = row.to_dict()
         elif self.base_name == 'weekly_tracker':
             row = row.summarize_day_rows()
@@ -79,6 +96,20 @@ class AirtableClient:
 
         row_key = row[AIRTABLE_CONFIG[self.base_name]['row_key']]
         if row_key in self.get_rows():
-            self.table.update(self._get_row_id(row), row)
+            self.table.update(self._get_row_id(row), row, typecast=True)
         else:
-            self.table.create(row)
+            self.table.create(row, typecast=True)
+
+    def create_row(self, row):
+        if self.base_name in ['daily_tracker', 'lifting_tracker']:
+            row = row.to_dict()
+        elif self.base_name == 'weekly_tracker':
+            row = row.summarize_day_rows()
+        else:
+            row = row['fields']
+
+        self.table.create(row, typecast=True)
+
+
+    def batch_delete(self, ids):
+        self.table.batch_delete(ids)
