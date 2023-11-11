@@ -40,7 +40,7 @@ class DailyTrackerRow:
         self.mountain_miles = self._get_with_default('⛰ Miles', 0)
         self.mountain_time = self._get_with_default('⛰ Time', 0)
         self.elevation_gain = self._get_with_default('Elevation Gain', 0)
-        self.strava_link = self._get_with_default('Strava Link')
+        self.workout_link = self._get_with_default('Workout Link', '')
 
         # cronometer
         self.kcals_consumed = self._get_with_default('Cals Consumed', 0)
@@ -88,9 +88,6 @@ class DailyTrackerRow:
     def get_date(self):
         return datetime.strptime(self.date, '%Y-%m-%d').date()
 
-    def has_strava(self) -> bool:
-        return self.strava_link != ''
-
     def add_strava_activities(self, activity_dict):
 
         if self.date not in activity_dict:
@@ -98,7 +95,13 @@ class DailyTrackerRow:
 
         for activity in activity_dict[self.date]:
             
-            self.strava_link = get_strava_activity_url(activity)
+            strava_link = get_strava_activity_url(activity)
+            if strava_link not in self.workout_link:
+                if len(self.workout_link) > 0:
+                    self.workout_link = strava_link + ', ' + self.workout_link
+                else:
+                    self.workout_link = strava_link
+
             sport_type = activity.sport_type
 
             if sport_type == 'Run':
@@ -261,6 +264,23 @@ class DailyTrackerRow:
         self.omega_3 = to_float(nutrition_summary['Omega-3 (g)'])
         self.omega_6 = to_float(nutrition_summary['Omega-6 (g)'])
 
+    def add_hevy_workouts(self, workout_dict):
+
+        if self.date not in workout_dict:
+            return
+        
+        workout = workout_dict[self.date]
+
+        if '💪' not in self.exercise:
+            self.exercise = '💪 ' + self.exercise
+
+        hevy_url = get_hevy_workout_url(workout)
+
+        if hevy_url not in self.workout_link:
+            if len(self.workout_link) > 0:
+                self.workout_link += ', '
+            self.workout_link += hevy_url
+
     def to_dict(self):
        
         output = {'Date': self.date}
@@ -310,8 +330,8 @@ class DailyTrackerRow:
         if self.travel_day:
             output['Travel Day'] = self.travel_day
 
-        if self.strava_link:
-            output['Strava Link'] = self.strava_link
+        if self.workout_link:
+            output['Workout Link'] = self.workout_link
 
         if self.road_miles:
             output['👟 Miles'] = self.road_miles
@@ -383,3 +403,7 @@ def to_float(s):
     except ValueError:
         f = 0.0
     return f
+
+def get_hevy_workout_url(workout):
+    return '[' + workout['name'] + ']' + \
+        '(https://hevy.com/workout/' + str(workout['short_id']) + ')'

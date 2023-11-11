@@ -1,6 +1,7 @@
 from clients.airtable import AirtableClient
 from clients.cronometer import CronometerClient
 from clients.google import GoogleClient
+from clients.hevy import HevyClient
 from clients.strava import StravaClient
 from clients.weight_gurus import WeightGurusClient
 from clients.whoop import WhoopClient
@@ -10,6 +11,7 @@ from dateutil import tz
 from flask import Flask, Response, request
 from daily_tracker_row import DailyTrackerRow
 from weekly_tracker_row import WeeklyTrackerRow, get_week_name
+from lifting_tracker_row import LiftingTrackerRow
 from pandas import date_range
 
 import os
@@ -25,6 +27,7 @@ def pull_life_tracker_data():
     weight_client   = WeightGurusClient()
     google_client   = GoogleClient()
     crono_client    = CronometerClient()
+    hevy_client     = HevyClient()
 
     existing_rows = daily_client.get_rows()
 
@@ -44,6 +47,7 @@ def pull_life_tracker_data():
     recoveries = whoop_client.get_recent_recoveries(start_date)
     weights    = weight_client.get_weights(start_date)
     nutrition  = crono_client.get_nutrition_summaries(start_date, today)
+    lifts       = hevy_client.get_workouts()
 
     updated_daily_rows = []
     for date_to_process in date_range(start_date.date(), today.date()):
@@ -75,11 +79,15 @@ def pull_life_tracker_data():
         # Add nutrition data
         row.add_nutrition_summary(nutrition)
 
+        # Add hevy data
+        row.add_hevy_workouts(lifts)
+
         # Save row
         daily_client.upsert_row(row)
         updated_daily_rows += [row]
 
     update_weekly_summary(daily_client, updated_daily_rows)
+    update_lifting_data(start_date, lifts)
 
     return Response(
         f'Updated life tracker from {start_date.date()} to today', status=200)
@@ -123,6 +131,22 @@ def map_weeks_to_days(week_names, day_rows):
                 weeks_to_days[week_name] = [day_row]
 
     return weeks_to_days
+
+def update_lifting_data(start_date, workout_dict):
+    lifting_client = AirtableClient('lifting_tracker')
+    existing_rows = lifting_client.get_rows()
+    
+    for date, workout in workout_dict.items():
+        if datetime.strptime(date, '%Y-%m-%d') >= start_date:
+            existing_workouts = []
+            if date in existing_rows:
+                existing_workouts = existing_rows[date]
+            if len(existing_workouts) > 0:
+                ids = [ew['id'] for ew in existing_workouts]
+                lifting_client.batch_delete(ids)
+            for exercise in workout['exercises']:
+                lifting_row = LiftingTrackerRow(date, workout['name'], exercise)
+                lifting_client.create_row(lifting_row)
 
 @app.route("/ping", methods=["GET"])
 def ping():
