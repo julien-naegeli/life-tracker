@@ -278,6 +278,8 @@ class DailyTrackerRow:
 
         if hevy_url not in self.workout_link:
             if len(self.workout_link) > 0:
+                if self.workout_link[-1] == '\n':
+                    self.workout_link = self.workout_link[:-1]
                 self.workout_link += ', '
             self.workout_link += hevy_url
 

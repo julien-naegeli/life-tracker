@@ -89,8 +89,6 @@ class LiftingTrackerRow:
 
 
     def get_muscle_groups(self):
-
-
         muscle_groups = [self._format(self.raw_exercise['muscle_group'])]
 
         for other_muscle in self.raw_exercise['other_muscles']:
@@ -99,11 +97,11 @@ class LiftingTrackerRow:
         return muscle_groups
     
     def _format(self, muscle_group):
-        if muscle_group == 'Full_body':
+        if muscle_group == 'full_body':
             return 'Full Body'
-        elif muscle_group == 'Upper_back':
+        elif muscle_group == 'upper_back':
             return 'Upper Back'
-        elif muscle_group == 'Lower_back':
+        elif muscle_group == 'lower_back':
             return 'Lower Back'
         else:
             return muscle_group.capitalize()
