@@ -19,9 +19,9 @@ AIRTABLE_CONFIG = {
         'multiple_per_key': False
     },
     'lifting_tracker': {
-        'env_key': 'LIFE_TRACKER_BASE_ID',
+        'env_key': 'LIFTING_TRACKER_BASE_ID',
         'row_key': 'Date',
-        'table_name': 'Lifting',
+        'table_name': 'Main',
         'has_row_object': False,
         'multiple_per_key': True
     },

@@ -79,7 +79,7 @@ def pull_life_tracker_data():
         # Add nutrition data
         row.add_nutrition_summary(nutrition)
 
-        # Add hevy data
+        # # Add hevy data
         row.add_hevy_workouts(lifts)
 
         # Save row
