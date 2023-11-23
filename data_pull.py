@@ -1,153 +1,36 @@
 from clients.airtable import AirtableClient
-from clients.cronometer import CronometerClient
-from clients.google import GoogleClient
-from clients.hevy import HevyClient
-from clients.strava import StravaClient
-from clients.weight_gurus import WeightGurusClient
-from clients.whoop import WhoopClient
+from flask import Flask, request
+from services.config import SUPPORTED_SERVICES
+from services.daily_tracker_service import DailyTrackerService
+from services.lifting_tracker_service import LiftingTrackerService
+from services.weekly_tracker_service import WeeklyTrackerService
+from util.helpers import get_with_default, get_start_date
+from util.responses import success
 
-from datetime import date, datetime
-from dateutil import tz
-from flask import Flask, Response, request
-from daily_tracker_row import DailyTrackerRow
-from weekly_tracker_row import WeeklyTrackerRow, get_week_name
-from lifting_tracker_row import LiftingTrackerRow
-from pandas import date_range
-
-import os
 
 app = Flask(__name__)
 
+
 @app.route("/pull", methods=["POST"])
 def pull_life_tracker_data():
+    daily_client = AirtableClient('daily_tracker')
+
+    start_date = get_start_date(request.json)
+    services = get_with_default(request.json, 'services', SUPPORTED_SERVICES)
     
-    daily_client    = AirtableClient('daily_tracker')
-    strava_client   = StravaClient()
-    whoop_client    = WhoopClient()
-    weight_client   = WeightGurusClient()
-    google_client   = GoogleClient()
-    crono_client    = CronometerClient()
-    hevy_client     = HevyClient()
+    daily_service = DailyTrackerService(daily_client, start_date, services)
+    updated_daily_rows = daily_service.update_rows()
 
-    existing_rows = daily_client.get_rows()
+    weekly_service = WeeklyTrackerService(daily_client, updated_daily_rows)
+    weekly_service.update_summary()
 
-    start_date = datetime.fromtimestamp(int(os.environ['THE_BEGINNING_EPOCH']))
-    if 'start_date' in request.json:
-        start_date = datetime.strptime(request.json['start_date'], '%Y-%m-%d')
-    elif request.json['full_backfill'] == False:
-        sorted_rows = daily_client.get_sorted_rows()
-        start_date = datetime.strptime(sorted_rows[-1].date, '%Y-%m-%d')
+    if 'hevy' in services:
+        lifting_service = LiftingTrackerService(daily_service, start_date)
+        lifting_service.update_rows()
 
-    today = datetime.now(tz.gettz('America/Los_Angeles'))
+    return success(f'Updated life tracker from {start_date.date()} to today')
 
-    activities = strava_client.get_activities(after=start_date.strftime('%s'))
-    sleeps     = whoop_client.get_recent_sleeps(start_date)
-    workouts   = whoop_client.get_recent_workouts(start_date)
-    cycles     = whoop_client.get_recent_cycles(start_date)
-    recoveries = whoop_client.get_recent_recoveries(start_date)
-    weights    = weight_client.get_weights(start_date)
-    nutrition  = crono_client.get_nutrition_summaries(start_date, today)
-    lifts       = hevy_client.get_workouts()
-
-    updated_daily_rows = []
-    for date_to_process in date_range(start_date.date(), today.date()):
-        
-        date_str = date_to_process.strftime('%Y-%m-%d')
-
-        # Create row if it's a new date
-        if date_str not in existing_rows:
-            row = DailyTrackerRow(date=date_to_process)
-        else:
-            row = existing_rows[date_str]
-            
-        # Add strava data
-        row.add_strava_activities(activities)
-
-        # Add whoop data
-        row.add_whoop_sleep(sleeps)
-        row.add_whoop_workouts(workouts)
-        row.add_whoop_cycles(cycles)
-        row.add_whoop_recoveries(recoveries)
-
-        # Add weight gurus data
-        row.add_weight(weights)
-
-        # Check if it's a travel day
-        events = google_client.get_events(date_to_process)
-        row.add_travel_day(events)
-
-        # Add nutrition data
-        row.add_nutrition_summary(nutrition)
-
-        # # Add hevy data
-        row.add_hevy_workouts(lifts)
-
-        # Save row
-        daily_client.upsert_row(row)
-        updated_daily_rows += [row]
-
-    update_weekly_summary(daily_client, updated_daily_rows)
-    update_lifting_data(start_date, lifts)
-
-    return Response(
-        f'Updated life tracker from {start_date.date()} to today', status=200)
-
-def update_weekly_summary(daily_client, updated_daily_rows):
-    weekly_client = AirtableClient('weekly_tracker')
-    existing_days = daily_client.get_rows(force_get=True)
-    
-    weeks_to_update = {}
-    for row in updated_daily_rows:
-        week_name = get_week_name(row.get_date())
-        if week_name in weeks_to_update:
-            weeks_to_update[week_name] = weeks_to_update[week_name] + [row]
-        else:
-            weeks_to_update[week_name] = [row]
-
-    week_names = weeks_to_update.keys()
-    weeks_to_days = map_weeks_to_days(week_names, existing_days)
-    for week_name in week_names:
-        
-        # get available day rows for week
-        days_for_week = weeks_to_days[week_name]
-
-        # calculate summary
-        week_row = WeeklyTrackerRow(day_rows=days_for_week)
-
-        # save row
-        weekly_client.upsert_row(week_row)
-
-def map_weeks_to_days(week_names, day_rows):
-    
-    weeks_to_days = {}
-    for day_key, day_row in day_rows.items():
-        
-        week_name = get_week_name(day_row.get_date())
-        if week_name in week_names:
-
-            if week_name in weeks_to_days:                
-                weeks_to_days[week_name] += [day_row]
-            else:
-                weeks_to_days[week_name] = [day_row]
-
-    return weeks_to_days
-
-def update_lifting_data(start_date, workout_dict):
-    lifting_client = AirtableClient('lifting_tracker')
-    existing_rows = lifting_client.get_rows()
-    
-    for date, workout in workout_dict.items():
-        if datetime.strptime(date, '%Y-%m-%d') >= start_date:
-            existing_workouts = []
-            if date in existing_rows:
-                existing_workouts = existing_rows[date]
-            if len(existing_workouts) > 0:
-                ids = [ew['id'] for ew in existing_workouts]
-                lifting_client.batch_delete(ids)
-            for exercise in workout['exercises']:
-                lifting_row = LiftingTrackerRow(date, workout['name'], exercise)
-                lifting_client.create_row(lifting_row)
 
 @app.route("/ping", methods=["GET"])
 def ping():
-    return Response('Successful ping. Let\'s track that life.', status=200)
+    return success('Successful ping. Let\'s track that life.')

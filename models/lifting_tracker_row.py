@@ -1,6 +1,6 @@
 from datetime import datetime
 from dateutil import tz
-from daily_tracker_row import get_pace, format_time
+from models.daily_tracker_row import get_pace, format_time
 
 class LiftingTrackerRow:
     

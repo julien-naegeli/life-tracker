@@ -170,7 +170,8 @@ class DailyTrackerRow:
             elif workout['sport_id'] == 0 and '👟' not in self.exercise and \
                 '⛰' not in self.exercise:
                 self.exercise += '👟 '
-            elif workout['sport_id'] == 52 and '🥾' and '⛰' not in self.exercise:
+            elif workout['sport_id'] == 52 and '🥾' not in self.exercise and \
+                '⛰' not in self.exercise:
                 self.exercise += '🥾 '
             elif workout['sport_id'] == 1 and '🚲' not in self.exercise:
                 self.exercise += '🚲 '

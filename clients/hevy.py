@@ -20,7 +20,6 @@ class HevyClient:
 
     
     def authenticate(self) -> str:
-        
         data = json.dumps({
             'emailOrUsername': self.username,
             'password': self.password
@@ -32,7 +31,6 @@ class HevyClient:
         return response['auth_token']
     
     def get_workouts(self):
-
         params = {
             'username': 'jnaegz',
             'limit': 10,
