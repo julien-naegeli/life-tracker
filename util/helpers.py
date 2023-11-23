@@ -23,4 +23,4 @@ def get_beginning_date():
     return datetime.fromtimestamp(int(environ['THE_BEGINNING_EPOCH']))
 
 def today():
-    return datetime.now(tz.gettz('America/Los_Angeles')).date()
+    return datetime.now(tz.gettz('America/Los_Angeles'))
