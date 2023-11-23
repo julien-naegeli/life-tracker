@@ -5,7 +5,7 @@ from models.lifting_tracker_row import LiftingTrackerRow
 class LiftingTrackerService:
 
     def __init__(self, daily_service, start_date):
-        self.start_date = start_date
+        self.start_date = start_date.date()
         self.lifting_client = AirtableClient('lifting_tracker')
         self.daily_service = daily_service
         self.lifts = daily_service.get_service_data_with_default('hevy')
