@@ -1,5 +1,5 @@
 from datetime import timedelta
-from daily_tracker_row import get_pace, format_time
+from models.daily_tracker_row import get_pace, format_time
 
 class WeeklyTrackerRow:
     

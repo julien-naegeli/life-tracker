@@ -1,4 +1,4 @@
-from daily_tracker_row import DailyTrackerRow
+from models.daily_tracker_row import DailyTrackerRow
 from pyairtable import Table
 
 import os
