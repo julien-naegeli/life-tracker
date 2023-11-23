@@ -5,7 +5,7 @@ from models.lifting_tracker_row import LiftingTrackerRow
 class LiftingTrackerService:
 
     def __init__(self, daily_service, start_date):
-        self.start_date = start_date.date()
+        self.start_date = start_date
         self.lifting_client = AirtableClient('lifting_tracker')
         self.daily_service = daily_service
         self.lifts = daily_service.get_service_data_with_default('hevy')
@@ -13,7 +13,7 @@ class LiftingTrackerService:
 
     def update_rows(self):
         for date, workout in self.lifts.items():
-            if datetime.strptime(date, '%Y-%m-%d') >= self.start_date:
+            if datetime.strptime(date, '%Y-%m-%d').date() >= self.start_date:
                 existing_workouts = []
                 if date in self.existing_rows:
                     existing_workouts = self.existing_rows[date]
