@@ -27,6 +27,7 @@ class WhoopClient:
         url = os.environ['WHOOP_TOKEN_ROUTE']
         response = requests.post(url, data=data).json()
         
+        print('response', response)
         refresh_token_row['fields']['Value'] = response['refresh_token']
         access_token_row['fields']['Value'] = response['access_token']
 
