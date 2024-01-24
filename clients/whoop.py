@@ -15,6 +15,7 @@ class WhoopClient:
 
         refresh_token_row = config['WHOOP_REFRESH_TOKEN']
         access_token_row = config['WHOOP_ACCESS_TOKEN']
+        headers =  {'Content-Type' : 'application/x-www-form-urlencoded'}   
 
         data = {
             'grant_type': 'refresh_token',
@@ -25,7 +26,7 @@ class WhoopClient:
         }
         
         url = os.environ['WHOOP_TOKEN_ROUTE']
-        response = requests.post(url, data=data).json()
+        response = requests.post(url, headers=headers, data=data).json()
         
         print('response', response)
         refresh_token_row['fields']['Value'] = response['refresh_token']
